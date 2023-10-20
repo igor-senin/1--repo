@@ -39,15 +39,12 @@ int RunMain(const std::string& firstDir, const std::string& secondDir, float per
         // Case files' contents aren't equal
         float common_len = static_cast<float>(LongestCommonSubsequenceLength(
             first[i].GetContent(), second[j].GetContent(), percent));
-
-        std::cout << i << ' ' << j << '\n';
-        std::cout << common_len << "\n";
         float similarity = common_len / static_cast<float>(std::max(first_size, second_size));
 
-        if (similarity + eps < percent) {
+        if (100.f * similarity + eps < percent) {
           different[i].push_back(j);
         } else {
-          similarTo[i].push_back(std::make_pair(j, similarity));
+          similarTo[i].push_back(std::make_pair(j, 100.f * similarity));
         }
 
         continue;
@@ -74,31 +71,29 @@ int RunMain(const std::string& firstDir, const std::string& secondDir, float per
   std::cout << "These files are identical:\n";
   for (size_t i = 0; i < first.size(); ++i) {
     for (auto j : identicalTo[i]) {
-      std::cout << firstDir << '/' << first[i].GetPath()
-          << " - " << secondDir << '/' << second[j].GetPath() << "\n";
+      std::cout << first[i].GetPath() << " - " << second[j].GetPath() << "\n";
     }
   }
 
   std::cout << "\nThese files are similar:\n";
   for (size_t i = 0; i < first.size(); ++i) {
     for (auto [j, similarity] : similarTo[i]) {
-      std::cout << firstDir << '/' << first[i].GetPath()
-          << " - " << secondDir << '/' << second[j].GetPath()
-          << " - " << similarity << "\n";
+      std::cout << first[i].GetPath() << " - " << second[j].GetPath()
+          << " - " << similarity << "%\n";
     }
   }
 
   std::cout << "\nThese files are only in first directory:\n";
   for (size_t i = 0; i < first.size(); ++i) {
     if (!areInSecond[i]) {
-      std::cout << firstDir << '/' << first[i].GetPath() << "\n";
+      std::cout << first[i].GetPath() << "\n";
     }
   }
 
   std::cout << "\nThese files are only in second directory:\n";
   for (size_t j = 0; j < second.size(); ++j) {
     if (!areInFirst[j]) {
-      std::cout << secondDir << '/' << second[j].GetPath() << "\n";
+      std::cout << second[j].GetPath() << "\n";
     }
   }
 
@@ -128,13 +123,13 @@ size_t LongestCommonSubsequenceLength(const std::string& first,
             lcsCalculator[i][j - 1]);
       }
 
-//      /* Max possible len could be reached */
-//      float max_len = static_cast<float>(
-//          lcsCalculator[i][j] + std::min(first.size() - i, second.size() - j));
-//      if (max_len + eps <  * percent) {
-//        /* Further calculations are meaningless; exiting with 0 */
-//        return 0;
-//      }
+      /* Max possible len could be reached */
+      float max_len = static_cast<float>(
+          lcsCalculator[i][j] + std::max(first.size() - i, second.size() - j));
+      if (100.f * (max_len / biggest) + eps < percent) {
+        /* Further calculations are meaningless; exiting with 0 */
+        return 0;
+      }
     }
   }
 
